@@ -18,6 +18,8 @@ obj-$(CONFIG_LOGO)		  += logo/
 obj-y				  += backlight/
 obj-y				  += display/
 
+obj-$(CONFIG_DECON_FB)            += decon_display/
+
 obj-$(CONFIG_EXYNOS_VIDEO)     += exynos/
 
 obj-$(CONFIG_FB_CFB_FILLRECT)  += cfbfillrect.o
