@@ -131,7 +131,7 @@
 #define MMU_MAJ_VER(reg)	(reg >> 28)
 #define MMU_MIN_VER(reg)	((reg >> 21) & 0x7F)
 
-#define MMU_PB_CAPA(reg)	((reg) & 0xFF)
+#define MMU_PB_CAPA(reg)	((reg >> 20) & 0xF)
 
 #define MMU_MAX_DF_CMD		8
 
@@ -287,7 +287,7 @@ unsigned int __sysmmu_version(struct sysmmu_drvdata *drvdata,
 static bool has_sysmmu_capable_pbuf(struct sysmmu_drvdata *drvdata, int idx)
 {
 	unsigned long cfg =
-		__raw_readl(drvdata->sfrbases[idx] + REG_PB_INFO);
+		__raw_readl(drvdata->sfrbases[idx] + REG_MMU_CAPA);
 
 	return MMU_PB_CAPA(cfg) ? true : false;
 }
