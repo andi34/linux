@@ -39,6 +39,8 @@ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS_GSC)	+= exynos-gsc/
 obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_CAMERA) += exynos5-is/
 obj-$(CONFIG_VIDEO_EXYNOS)		+= exynos/
 
+obj-$(CONFIG_VIDEO_EXYNOS)	+= exynos/
+
 obj-$(CONFIG_BLACKFIN)                  += blackfin/
 
 obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
