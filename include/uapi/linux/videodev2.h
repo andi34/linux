@@ -705,6 +705,8 @@ struct v4l2_buffer {
 #define V4L2_BUF_FLAG_TSTAMP_SRC_MASK		0x00070000
 #define V4L2_BUF_FLAG_TSTAMP_SRC_EOF		0x00000000
 #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+/* Expects and returns a sync fence */
+#define V4L2_BUF_FLAG_USE_SYNC	0x8000
 
 /**
  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
