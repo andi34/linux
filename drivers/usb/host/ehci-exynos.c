@@ -21,6 +21,7 @@
 #include <linux/of_gpio.h>
 #include <linux/phy/phy.h>
 #include <linux/platform_device.h>
+#include <linux/regulator/consumer.h>
 #include <linux/usb.h>
 #include <linux/usb/hcd.h>
 
@@ -43,6 +44,11 @@
 
 static const char hcd_name[] = "ehci-exynos";
 static struct hc_driver __read_mostly exynos_ehci_hc_driver;
+static const char* const exynos_ehci_supply_names[] = {
+	"vusb_d", // digital USB supply
+	"vusb_a", // analogue USB supply
+};
+
 
 #define PHY_NUMBER 3
 
@@ -50,6 +56,7 @@ struct exynos_ehci_hcd {
 	struct clk *clk;
 	struct phy *phy[PHY_NUMBER];
 	int power_on;
+	struct regulator_bulk_data supplies[ARRAY_SIZE(exynos_ehci_supply_names)];
 };
 
 #define to_exynos_ehci(hcd) (struct exynos_ehci_hcd *)(hcd_to_ehci(hcd)->priv)
@@ -220,6 +227,7 @@ static int exynos_ehci_probe(struct platform_device *pdev)
 	struct resource *res;
 	int irq;
 	int err;
+	int i;
 
 	/*
 	 * Right now device-tree probed devices don't get dma_mask set.
@@ -279,10 +287,28 @@ skip_phy:
 		goto fail_io;
 	}
 
+	/* regulators */
+	for (i = 0; i < ARRAY_SIZE(exynos_ehci->supplies); i++)
+		exynos_ehci->supplies[i].supply = exynos_ehci_supply_names[i];
+
+	err = devm_regulator_bulk_get(&pdev->dev, ARRAY_SIZE(exynos_ehci->supplies),
+			exynos_ehci->supplies);
+	if (err) {
+		dev_err(&pdev->dev, "Failed to request regulators\n");
+		goto fail_reg;
+	}
+
+	err = regulator_bulk_enable(ARRAY_SIZE(exynos_ehci->supplies), exynos_ehci->supplies);
+
+	if (err) {
+		dev_err(&pdev->dev, "Failed to enable regulators\n");
+		goto fail_reg;
+	}
+
 	err = exynos_ehci_phy_enable(&pdev->dev);
 	if (err) {
 		dev_err(&pdev->dev, "Failed to enable USB phy\n");
-		goto fail_io;
+		goto fail_reg;
 	}
 
 	ehci = hcd_to_ehci(hcd);
@@ -305,6 +331,8 @@ skip_phy:
 
 fail_add_hcd:
 	exynos_ehci_phy_disable(&pdev->dev);
+fail_reg:
+	regulator_bulk_disable(ARRAY_SIZE(exynos_ehci->supplies), exynos_ehci->supplies);
 fail_io:
 	clk_disable_unprepare(exynos_ehci->clk);
 fail_clk:
@@ -324,6 +352,8 @@ static int exynos_ehci_remove(struct platform_device *pdev)
 	exynos_ehci_phy_disable(&pdev->dev);
 
 	clk_disable_unprepare(exynos_ehci->clk);
+
+	regulator_bulk_disable(ARRAY_SIZE(exynos_ehci->supplies), exynos_ehci->supplies);
 
 	usb_put_hcd(hcd);
 
