@@ -607,6 +607,14 @@
 	status = "okay";
 };
 
+&gpu {
+    status = "okay";
+    gpu-supply = <&buck4_reg>;
+
+    regulator-microvolt-offset = <50000>;
+    regulator-microsecs-delay = <50>;
+};
+
 &hsotg {
 	vusb_d-supply = <&ldo15_reg>;
 	vusb_a-supply = <&ldo12_reg>;
