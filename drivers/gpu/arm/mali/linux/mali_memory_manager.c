@@ -136,23 +136,6 @@ int mali_mem_backend_struct_create(mali_mem_backend **backend, u32 psize)
 	mutex_init(&mem_backend->mutex);
 
 	/* link backend with id */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 9, 0)
-again:
-	if (!idr_pre_get(&mali_backend_idr, GFP_KERNEL)) {
-		kfree(mem_backend);
-		return -ENOMEM;
-	}
-	mutex_lock(&mali_idr_mutex);
-	ret = idr_get_new_above(&mali_backend_idr, mem_backend, 1, &index);
-	mutex_unlock(&mali_idr_mutex);
-
-	if (-ENOSPC == ret) {
-		kfree(mem_backend);
-		return -ENOSPC;
-	}
-	if (-EAGAIN == ret)
-		goto again;
-#else
 	mutex_lock(&mali_idr_mutex);
 	ret = idr_alloc(&mali_backend_idr, mem_backend, 1, MALI_S32_MAX, GFP_KERNEL);
 	mutex_unlock(&mali_idr_mutex);
@@ -162,7 +145,6 @@ again:
 		kfree(mem_backend);
 		return -ENOSPC;
 	}
-#endif
 	return index;
 }
 
