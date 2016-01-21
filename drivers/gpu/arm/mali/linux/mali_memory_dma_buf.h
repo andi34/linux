@@ -11,10 +11,6 @@
 #ifndef __MALI_MEMORY_DMA_BUF_H__
 #define __MALI_MEMORY_DMA_BUF_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "mali_uk_types.h"
 #include "mali_osk.h"
 #include "mali_memory.h"
@@ -44,10 +40,6 @@ _mali_osk_errcode_t mali_mem_bind_dma_buf(mali_mem_allocation *alloc,
 #if !defined(CONFIG_MALI_DMA_BUF_MAP_ON_ATTACH)
 int mali_dma_buf_map_job(struct mali_pp_job *job);
 void mali_dma_buf_unmap_job(struct mali_pp_job *job);
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif /* __MALI_MEMORY_DMA_BUF_H__ */

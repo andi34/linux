@@ -16,10 +16,6 @@
 #ifndef __MALI_UTGARD_UK_TYPES_H__
 #define __MALI_UTGARD_UK_TYPES_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Iteration functions depend on these values being consecutive. */
 #define MALI_UK_TIMELINE_GP   0
 #define MALI_UK_TIMELINE_PP   1
@@ -1032,9 +1028,5 @@ typedef struct {
 /** @} */ /* end group u_k_api */
 
 /** @} */ /* end group uddapi */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __MALI_UTGARD_UK_TYPES_H__ */
