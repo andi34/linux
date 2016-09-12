@@ -26,9 +26,6 @@
 #define MALI_OS_MEMORY_KERNEL_BUFFER_SIZE_IN_PAGES (MALI_OS_MEMORY_KERNEL_BUFFER_SIZE_IN_MB * 256)
 #define MALI_OS_MEMORY_POOL_TRIM_JIFFIES (10 * CONFIG_HZ) /* Default to 10s */
 
-/* Write combine dma_attrs */
-static DEFINE_DMA_ATTRS(dma_attrs_wc);
-
 static unsigned long mali_mem_os_shrink(struct shrinker *shrinker, struct shrink_control *sc);
 static unsigned long mali_mem_os_shrink_count(struct shrinker *shrinker, struct shrink_control *sc);
 static void mali_mem_os_trim_pool(struct work_struct *work);
@@ -359,7 +356,7 @@ _mali_osk_errcode_t mali_mem_os_get_table_page(mali_dma_addr *phys, mali_io_addr
 	if (_MALI_OSK_ERR_OK != ret) {
 		*mapping = dma_alloc_attrs(&mali_platform_device->dev,
 					   _MALI_OSK_MALI_PAGE_SIZE, &tmp_phys,
-					   GFP_KERNEL, &dma_attrs_wc);
+					   GFP_KERNEL, DMA_ATTR_WRITE_COMBINE);
 
 		if (NULL != *mapping) {
 			ret = _MALI_OSK_ERR_OK;
@@ -394,7 +391,7 @@ void mali_mem_os_release_table_page(mali_dma_addr phys, void *virt)
 
 		dma_free_attrs(&mali_platform_device->dev,
 			       _MALI_OSK_MALI_PAGE_SIZE, virt, phys,
-			       &dma_attrs_wc);
+			       DMA_ATTR_WRITE_COMBINE);
 	}
 }
 
@@ -444,7 +441,7 @@ static void mali_mem_os_page_table_pool_free(size_t nr_to_free)
 	/* After releasing the spinlock: free the pages we removed from the pool. */
 	for (i = 0; i < nr_to_free; i++) {
 		dma_free_attrs(&mali_platform_device->dev, _MALI_OSK_MALI_PAGE_SIZE,
-			       virt_arr[i], (dma_addr_t)phys_arr[i], &dma_attrs_wc);
+			       virt_arr[i], (dma_addr_t)phys_arr[i], DMA_ATTR_WRITE_COMBINE);
 	}
 }
 
@@ -570,8 +567,6 @@ _mali_osk_errcode_t mali_mem_os_init(void)
 	if (NULL == mali_mem_os_allocator.wq) {
 		return _MALI_OSK_ERR_NOMEM;
 	}
-
-	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &dma_attrs_wc);
 
 	register_shrinker(&mali_mem_os_allocator.shrinker);
 
