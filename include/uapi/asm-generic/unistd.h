@@ -692,11 +692,16 @@ __SC_COMP(__NR_process_vm_writev, sys_process_vm_writev, \
 __SYSCALL(__NR_kcmp, sys_kcmp)
 #define __NR_finit_module 273
 __SYSCALL(__NR_finit_module, sys_finit_module)
-__SYSCALL(274, sys_ni_syscall) /* 274 for sched_setattr */
-__SYSCALL(274, sys_ni_syscall) /* 275 for sched_getattr */
-__SYSCALL(274, sys_ni_syscall) /* 276 for renameat2 */
-__SYSCALL(274, sys_ni_syscall) /* 277 for seccomp */
-__SYSCALL(274, sys_ni_syscall) /* 278 for getrandom */
+/* Backporting seccomp, skip a few ...
+ * #define __NR_sched_setattr 274
+__SYSCALL(__NR_sched_setattr, sys_sched_setattr)
+ * #define __NR_sched_getattr 275
+__SYSCALL(__NR_sched_getattr, sys_sched_getattr)
+ * #define __NR_renameat2 276
+__SYSCALL(__NR_renameat2, sys_renameat2)
+ */
+#define __NR_seccomp 277
+__SYSCALL(__NR_seccomp, sys_seccomp)
 #define _NR_memfd_create 279
 __SYSCALL(__NR_memfd_create, sys_memfd_create)
 
