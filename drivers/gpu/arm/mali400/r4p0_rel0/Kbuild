@@ -51,6 +51,8 @@ else
     ccflags-y += -I$(src)/linux/license/gpl
 endif
 
+ccflags-y += -I$(src)/../../../../staging/android
+
 mali-y += \
 	linux/mali_osk_atomics.o \
 	linux/mali_osk_irq.o \
