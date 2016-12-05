@@ -20,7 +20,7 @@
 #if defined(CONFIG_SYNC)
 
 #include <linux/seq_file.h>
-#include <linux/sync.h>
+#include "sync.h"
 
 #include "mali_osk.h"
 
