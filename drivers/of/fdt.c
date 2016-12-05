@@ -841,6 +841,7 @@ int __init early_init_dt_scan_chosen(unsigned long node, const char *uname,
 {
 	unsigned long l = 0;
 	char *p = NULL;
+	__be32 *serial;
 	char *cmdline = data;
 
 	pr_debug("search \"chosen\", depth: %d, uname: %s\n", depth, uname);
