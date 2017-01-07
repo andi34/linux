@@ -106,8 +106,6 @@ static struct usb_function *f_obex2_cfg1;
 static struct usb_function *f_obex1_cfg2;
 static struct usb_function *f_obex2_cfg2;
 static struct eth_dev *the_dev;
-static struct net_device *phonet_dev;
-
 
 static struct usb_configuration nokia_config_500ma_driver = {
 	.label		= "Bus Powered",
@@ -138,7 +136,7 @@ static int __init nokia_bind_config(struct usb_configuration *c)
 	int obex1_stat = 0;
 	int obex2_stat = 0;
 
-	status = phonet_bind_config(c, phonet_dev);
+	status = phonet_bind_config(c);
 	if (status)
 		pr_debug("could not bind phonet config\n");
 
@@ -213,11 +211,9 @@ static int __init nokia_bind(struct usb_composite_dev *cdev)
 	struct usb_gadget	*gadget = cdev->gadget;
 	int			status;
 
-	phonet_dev = gphonet_setup(cdev->gadget);
-	if (IS_ERR(phonet_dev)) {
-		status = PTR_ERR(phonet_dev);
+	status = gphonet_setup(cdev->gadget);
+	if (status < 0)
 		goto err_phonet;
-	}
 
 	the_dev = gether_setup(cdev->gadget, dev_addr, host_addr, host_mac,
 			       qmult);
@@ -282,7 +278,7 @@ err_obex2_inst:
 err_usb:
 	gether_cleanup(the_dev);
 err_ether:
-	gphonet_cleanup(phonet_dev);
+	gphonet_cleanup();
 err_phonet:
 	return status;
 }
@@ -304,7 +300,7 @@ static int __exit nokia_unbind(struct usb_composite_dev *cdev)
 	if (!IS_ERR(fi_obex2))
 		usb_put_function_instance(fi_obex2);
 	usb_put_function_instance(fi_acm);
-	gphonet_cleanup(phonet_dev);
+	gphonet_cleanup();
 
 	gether_cleanup(the_dev);
 
