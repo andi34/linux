@@ -20,7 +20,6 @@
 #include <linux/usb/composite.h>
 
 #include "g_zero.h"
-#include "u_f.h"
 
 /*
  * LOOPBACK FUNCTION ... a testing vehicle for USB peripherals,
@@ -294,11 +293,6 @@ static void disable_loopback(struct f_loopback *loop)
 	VDBG(cdev, "%s disabled\n", loop->function.name);
 }
 
-static inline struct usb_request *lb_alloc_ep_req(struct usb_ep *ep, int len)
-{
-	return alloc_ep_req(ep, len, buflen);
-}
-
 static int
 enable_loopback(struct usb_composite_dev *cdev, struct f_loopback *loop)
 {
@@ -338,7 +332,7 @@ fail0:
 	 * than 'buflen' bytes each.
 	 */
 	for (i = 0; i < qlen && result == 0; i++) {
-		req = lb_alloc_ep_req(ep, 0);
+		req = alloc_ep_req(ep, 0);
 		if (req) {
 			req->complete = loopback_complete;
 			result = usb_ep_queue(ep, req, GFP_ATOMIC);
