@@ -248,7 +248,6 @@ static int eem_bind(struct usb_configuration *c, struct usb_function *f)
 {
 	struct usb_composite_dev *cdev = c->cdev;
 	struct f_eem		*eem = func_to_eem(f);
-	struct usb_string	*us;
 	int			status;
 	struct usb_ep		*ep;
 
@@ -270,11 +269,16 @@ static int eem_bind(struct usb_configuration *c, struct usb_function *f)
 		eem_opts->bound = true;
 	}
 
-	us = usb_gstrings_attach(cdev, eem_strings,
-				 ARRAY_SIZE(eem_string_defs));
-	if (IS_ERR(us))
-		return PTR_ERR(us);
-	eem_intf.iInterface = us[0].id;
+	/* maybe allocate device-global string IDs */
+	if (eem_string_defs[0].id == 0) {
+
+		/* control interface label */
+		status = usb_string_id(c->cdev);
+		if (status < 0)
+			return status;
+		eem_string_defs[0].id = status;
+		eem_intf.iInterface = status;
+	}
 
 	/* allocate instance-specific interface IDs */
 	status = usb_interface_id(c, f);
@@ -591,6 +595,7 @@ struct usb_function *eem_alloc(struct usb_function_instance *fi)
 	eem->port.cdc_filter = DEFAULT_FILTER;
 
 	eem->port.func.name = "cdc_eem";
+	eem->port.func.strings = eem_strings;
 	/* descriptors are per-instance copies */
 	eem->port.func.bind = eem_bind;
 	eem->port.func.unbind = eem_unbind;
