@@ -54,7 +54,6 @@ static struct usb_function *f_rndis;
 #  endif
 #endif
 
-#define USB_FFS_INCLUDED
 #include "f_fs.c"
 
 #define DRIVER_NAME	"g_ffs"
