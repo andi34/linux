@@ -488,6 +488,7 @@ static int pn_bind(struct usb_configuration *c, struct usb_function *f)
 	struct usb_ep *ep;
 	int status, i;
 
+#ifndef USBF_PHONET_INCLUDED
 	struct f_phonet_opts *phonet_opts;
 
 	phonet_opts = container_of(f->fi, struct f_phonet_opts, func_inst);
@@ -506,6 +507,7 @@ static int pn_bind(struct usb_configuration *c, struct usb_function *f)
 			return status;
 		phonet_opts->bound = true;
 	}
+#endif
 
 	/* Reserve interface IDs */
 	status = usb_interface_id(c, f);
