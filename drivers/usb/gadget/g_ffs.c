@@ -28,7 +28,8 @@
 #    define USB_ETH_RNDIS y
 #  endif
 
-#  include "u_ecm.h"
+#define USBF_ECM_INCLUDED
+#  include "f_ecm.c"
 #define USB_FSUBSET_INCLUDED
 #  include "f_subset.c"
 #  ifdef USB_ETH_RNDIS
@@ -38,15 +39,11 @@
 #  endif
 #  include "u_ether.h"
 
-USB_ETHERNET_MODULE_PARAMETERS();
-
 static u8 gfs_host_mac[ETH_ALEN];
 static struct eth_dev *the_dev;
 #  ifdef CONFIG_USB_FUNCTIONFS_ETH
 static int eth_bind_config(struct usb_configuration *c, u8 ethaddr[ETH_ALEN],
 		struct eth_dev *dev);
-static struct usb_function_instance *fi_ecm;
-static struct usb_function *f_ecm;
 #  endif
 #else
 #  define the_dev	NULL
@@ -78,6 +75,10 @@ struct gfs_ffs_obj {
 };
 
 USB_GADGET_COMPOSITE_OPTIONS();
+
+#if defined CONFIG_USB_FUNCTIONFS_ETH || defined CONFIG_USB_FUNCTIONFS_RNDIS
+USB_ETHERNET_MODULE_PARAMETERS();
+#endif
 
 static struct usb_device_descriptor gfs_dev_desc = {
 	.bLength		= sizeof gfs_dev_desc,
@@ -354,50 +355,14 @@ static int gfs_bind(struct usb_composite_dev *cdev)
 
 	if (missing_funcs)
 		return -ENODEV;
-#if defined CONFIG_USB_FUNCTIONFS_ETH
-	if (can_support_ecm(cdev->gadget)) {
-		struct f_ecm_opts *ecm_opts;
-
-		fi_ecm = usb_get_function_instance("ecm");
-		if (IS_ERR(fi_ecm))
-			return PTR_ERR(fi_ecm);
-		ecm_opts = container_of(fi_ecm, struct f_ecm_opts, func_inst);
-
-		gether_set_qmult(ecm_opts->net, qmult);
-
-		if (!gether_set_host_addr(ecm_opts->net, host_addr))
-			pr_info("using host ethernet address: %s", host_addr);
-		if (!gether_set_dev_addr(ecm_opts->net, dev_addr))
-			pr_info("using self ethernet address: %s", dev_addr);
-
-		the_dev = netdev_priv(ecm_opts->net);
-	} else {
-		the_dev = gether_setup(cdev->gadget, dev_addr, host_addr,
-				       gfs_host_mac, qmult);
-	}
-
-#elif defined CONFIG_USB_FUNCTIONFS_RNDIS
-
+#if defined CONFIG_USB_FUNCTIONFS_ETH || defined CONFIG_USB_FUNCTIONFS_RNDIS
 	the_dev = gether_setup(cdev->gadget, dev_addr, host_addr, gfs_host_mac,
 			       qmult);
 #endif
-	if (IS_ERR(the_dev))
-		return PTR_ERR(the_dev);
-
-#if defined CONFIG_USB_FUNCTIONFS_RNDIS && defined CONFIG_USB_FUNCTIONFS_ETH
-	if (can_support_ecm(cdev->gadget)) {
-		struct f_ecm_opts *ecm_opts;
-
-		ecm_opts = container_of(fi_ecm, struct f_ecm_opts, func_inst);
-
-		gether_set_gadget(ecm_opts->net, cdev->gadget);
-		ret = gether_register_netdev(ecm_opts->net);
-		if (ret)
-			goto error;
-		ecm_opts->bound = true;
-		gether_get_host_addr_u8(ecm_opts->net, gfs_host_mac);
+	if (IS_ERR(the_dev)) {
+		ret = PTR_ERR(the_dev);
+		goto error_quick;
 	}
-#endif
 
 	ret = usb_string_ids_tab(cdev, gfs_strings);
 	if (unlikely(ret < 0))
@@ -433,16 +398,9 @@ error_unbind:
 	for (i = 0; i < func_num; i++)
 		functionfs_unbind(ffs_tab[i].ffs_data);
 error:
-#if defined CONFIG_USB_FUNCTIONFS_ETH
-	if (can_support_ecm(cdev->gadget))
-		usb_put_function_instance(fi_ecm);
-	else
-		gether_cleanup(the_dev);
-	the_dev = NULL;
-#elif defined CONFIG_USB_FUNCTIONFS_RNDIS
 	gether_cleanup(the_dev);
 	the_dev = NULL;
-#endif
+error_quick:
 	return ret;
 }
 
@@ -455,19 +413,8 @@ static int gfs_unbind(struct usb_composite_dev *cdev)
 
 	ENTER();
 
-
-#if defined CONFIG_USB_FUNCTIONFS_ETH
-	if (can_support_ecm(cdev->gadget)) {
-		usb_put_function(f_ecm);
-		usb_put_function_instance(fi_ecm);
-	} else {
-		gether_cleanup(the_dev);
-	}
-	the_dev = NULL;
-#elif defined CONFIG_USB_FUNCTIONFS_RNDIS
 	gether_cleanup(the_dev);
 	the_dev = NULL;
-#endif
 
 	/*
 	 * We may have been called in an error recovery from
@@ -536,21 +483,9 @@ static int gfs_do_config(struct usb_configuration *c)
 static int eth_bind_config(struct usb_configuration *c, u8 ethaddr[ETH_ALEN],
 		struct eth_dev *dev)
 {
-	int status = 0;
-
-	if (can_support_ecm(c->cdev->gadget)) {
-		f_ecm = usb_get_function(fi_ecm);
-		if (IS_ERR(f_ecm))
-			return PTR_ERR(f_ecm);
-
-		status = usb_add_function(c, f_ecm);
-		if (status < 0)
-			usb_put_function(f_ecm);
-
-	} else {
-		status = geth_bind_config(c, ethaddr, dev);
-	}
-	return status;
+	return can_support_ecm(c->cdev->gadget)
+		? ecm_bind_config(c, ethaddr, dev)
+		: geth_bind_config(c, ethaddr, dev);
 }
 
 #endif
