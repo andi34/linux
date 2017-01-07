@@ -69,6 +69,13 @@ MODULE_LICENSE("GPL");
 
 #define GFS_MAX_DEVS	10
 
+struct gfs_ffs_obj {
+	const char *name;
+	bool mounted;
+	bool desc_ready;
+	struct ffs_data *ffs_data;
+};
+
 USB_GADGET_COMPOSITE_OPTIONS();
 
 static struct usb_device_descriptor gfs_dev_desc = {
@@ -174,7 +181,7 @@ static DEFINE_MUTEX(gfs_lock);
 static unsigned int missing_funcs;
 static bool gfs_registered;
 static bool gfs_single_func;
-static struct ffs_dev *ffs_tab;
+static struct gfs_ffs_obj *ffs_tab;
 
 static int __init gfs_init(void)
 {
@@ -217,7 +224,7 @@ static void __exit gfs_exit(void)
 }
 module_exit(gfs_exit);
 
-static struct ffs_dev *gfs_find_dev(const char *dev_name)
+static struct gfs_ffs_obj *gfs_find_dev(const char *dev_name)
 {
 	int i;
 
@@ -235,7 +242,7 @@ static struct ffs_dev *gfs_find_dev(const char *dev_name)
 
 static int functionfs_ready_callback(struct ffs_data *ffs)
 {
-	struct ffs_dev *ffs_obj;
+	struct gfs_ffs_obj *ffs_obj;
 	int ret;
 
 	ENTER();
@@ -276,7 +283,7 @@ done:
 
 static void functionfs_closed_callback(struct ffs_data *ffs)
 {
-	struct ffs_dev *ffs_obj;
+	struct gfs_ffs_obj *ffs_obj;
 
 	ENTER();
 	mutex_lock(&gfs_lock);
@@ -298,7 +305,7 @@ done:
 
 static void *functionfs_acquire_dev_callback(const char *dev_name)
 {
-	struct ffs_dev *ffs_dev;
+	struct gfs_ffs_obj *ffs_dev;
 
 	ENTER();
 	mutex_lock(&gfs_lock);
@@ -322,7 +329,7 @@ done:
 
 static void functionfs_release_dev_callback(struct ffs_data *ffs_data)
 {
-	struct ffs_dev *ffs_dev;
+	struct gfs_ffs_obj *ffs_dev;
 
 	ENTER();
 	mutex_lock(&gfs_lock);
