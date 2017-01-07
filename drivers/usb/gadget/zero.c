@@ -91,17 +91,17 @@ static struct usb_zero_options gzero_options = {
  * functional coverage for the "USBCV" test harness from USB-IF.
  * It's always set if OTG mode is enabled.
  */
-static unsigned autoresume = DEFAULT_AUTORESUME;
+unsigned autoresume = DEFAULT_AUTORESUME;
 module_param(autoresume, uint, S_IRUGO);
 MODULE_PARM_DESC(autoresume, "zero, or seconds before remote wakeup");
 
 /* Maximum Autoresume time */
-static unsigned max_autoresume;
+unsigned max_autoresume;
 module_param(max_autoresume, uint, S_IRUGO);
 MODULE_PARM_DESC(max_autoresume, "maximum seconds before remote wakeup");
 
 /* Interval between two remote wakeups */
-static unsigned autoresume_interval_ms;
+unsigned autoresume_interval_ms;
 module_param(autoresume_interval_ms, uint, S_IRUGO);
 MODULE_PARM_DESC(autoresume_interval_ms,
 		"milliseconds to increase successive wakeup delays");
