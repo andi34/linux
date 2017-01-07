@@ -3209,9 +3209,9 @@ static void fsg_lun_attr_release(struct config_item *item)
 }
 
 static struct configfs_item_operations fsg_lun_item_ops = {
-	.release		= fsg_lun_attr_release,
-	.show_attribute		= fsg_lun_opts_attr_show,
-	.store_attribute	= fsg_lun_opts_attr_store,
+	.release	= fsg_lun_attr_release,
+	.show_attribute = fsg_lun_opts_attr_show,
+	.store_attribute = fsg_lun_opts_attr_store,
 };
 
 static ssize_t fsg_lun_opts_file_show(struct fsg_lun_opts *opts, char *page)
@@ -3323,6 +3323,8 @@ static struct config_item_type fsg_lun_type = {
 	.ct_owner	= THIS_MODULE,
 };
 
+#define MAX_NAME_LEN	40
+
 static struct config_group *fsg_lun_make(struct config_group *group,
 					 const char *name)
 {
@@ -3346,8 +3348,7 @@ static struct config_group *fsg_lun_make(struct config_group *group,
 
 	fsg_opts = to_fsg_opts(&group->cg_item);
 	if (num >= FSG_MAX_LUNS)
-		return ERR_PTR(-ERANGE);
-
+		return ERR_PTR(-ENODEV);
 	mutex_lock(&fsg_opts->lock);
 	if (fsg_opts->refcnt || fsg_opts->common->luns[num]) {
 		ret = -EBUSY;
@@ -3362,6 +3363,7 @@ static struct config_group *fsg_lun_make(struct config_group *group,
 
 	memset(&config, 0, sizeof(config));
 	config.removable = true;
+
 
 	ret = fsg_common_create_lun(fsg_opts->common, &config, num, name,
 				    (const char **)&group->cg_item.ci_name);
@@ -3416,9 +3418,9 @@ static void fsg_attr_release(struct config_item *item)
 }
 
 static struct configfs_item_operations fsg_item_ops = {
-	.release		= fsg_attr_release,
-	.show_attribute		= fsg_opts_attr_show,
-	.store_attribute	= fsg_opts_attr_store,
+	.release	= fsg_attr_release,
+	.show_attribute = fsg_opts_attr_show,
+	.store_attribute = fsg_opts_attr_store,
 };
 
 static ssize_t fsg_opts_stall_show(struct fsg_opts *opts, char *page)
@@ -3436,23 +3438,22 @@ static ssize_t fsg_opts_stall_store(struct fsg_opts *opts, const char *page,
 				    size_t len)
 {
 	int ret;
-	bool stall;
+	u8 num;
 
 	mutex_lock(&opts->lock);
-
 	if (opts->refcnt) {
-		mutex_unlock(&opts->lock);
-		return -EBUSY;
+		ret = -EBUSY;
+		goto end;
 	}
+	ret = kstrtou8(page, 0, &num);
+	if (ret)
+		goto end;
 
-	ret = strtobool(page, &stall);
-	if (!ret) {
-		opts->common->can_stall = stall;
-		ret = len;
-	}
+	opts->common->can_stall = num != 0;
+	ret = len;
 
+end:
 	mutex_unlock(&opts->lock);
-
 	return ret;
 }
 
