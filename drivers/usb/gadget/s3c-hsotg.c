@@ -29,7 +29,6 @@
 #include <linux/slab.h>
 #include <linux/clk.h>
 #include <linux/regulator/consumer.h>
-#include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/phy/phy.h>
 
