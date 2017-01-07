@@ -375,9 +375,9 @@ ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
 		     const char *buf, size_t count)
 {
 	ssize_t		rc;
-	bool		ro;
+	unsigned	ro;
 
-	rc = strtobool(buf, &ro);
+	rc = kstrtouint(buf, 2, &ro);
 	if (rc)
 		return rc;
 
@@ -402,10 +402,10 @@ EXPORT_SYMBOL(fsg_store_ro);
 
 ssize_t fsg_store_nofua(struct fsg_lun *curlun, const char *buf, size_t count)
 {
-	bool		nofua;
+	unsigned	nofua;
 	int		ret;
 
-	ret = strtobool(buf, &nofua);
+	ret = kstrtouint(buf, 2, &nofua);
 	if (ret)
 		return ret;
 
@@ -452,10 +452,10 @@ EXPORT_SYMBOL(fsg_store_file);
 
 ssize_t fsg_store_cdrom(struct fsg_lun *curlun, const char *buf, size_t count)
 {
-	bool		cdrom;
+	unsigned	cdrom;
 	int		ret;
 
-	ret = strtobool(buf, &cdrom);
+	ret = kstrtouint(buf, 2, &cdrom);
 	if (ret)
 		return ret;
 
@@ -468,10 +468,10 @@ EXPORT_SYMBOL(fsg_store_cdrom);
 ssize_t fsg_store_removable(struct fsg_lun *curlun, const char *buf,
 			    size_t count)
 {
-	bool		removable;
+	unsigned	removable;
 	int		ret;
 
-	ret = strtobool(buf, &removable);
+	ret = kstrtouint(buf, 2, &removable);
 	if (ret)
 		return ret;
 
