@@ -1012,7 +1012,6 @@ struct usb_function *ecm_alloc(struct usb_function_instance *fi)
 					  sizeof(ecm->ethaddr));
 	if (status < 12) {
 		kfree(ecm);
-		mutex_unlock(&opts->lock);
 		return ERR_PTR(-EINVAL);
 	}
 	ecm_string_defs[1].s = ecm->ethaddr;
