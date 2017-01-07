@@ -28,7 +28,6 @@
 #    define USB_ETH_RNDIS y
 #  endif
 
-#define USBF_ECM_INCLUDED
 #  include "f_ecm.c"
 #  include "f_subset.c"
 #  ifdef USB_ETH_RNDIS
