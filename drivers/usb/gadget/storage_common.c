@@ -371,23 +371,6 @@ ssize_t fsg_show_removable(struct fsg_lun *curlun, char *buf)
 }
 EXPORT_SYMBOL(fsg_show_removable);
 
-/*
- * The caller must hold fsg->filesem for reading when calling this function.
- */
-static ssize_t _fsg_store_ro(struct fsg_lun *curlun, bool ro)
-{
-	if (fsg_lun_is_open(curlun)) {
-		LDBG(curlun, "read-only status change prevented\n");
-		return -EBUSY;
-	}
-
-	curlun->ro = ro;
-	curlun->initially_ro = ro;
-	LDBG(curlun, "read-only status set to %d\n", curlun->ro);
-
-	return 0;
-}
-
 ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
 		     const char *buf, size_t count)
 {
@@ -403,11 +386,16 @@ ssize_t fsg_store_ro(struct fsg_lun *curlun, struct rw_semaphore *filesem,
 	 * backing file is closed.
 	 */
 	down_read(filesem);
-	rc = _fsg_store_ro(curlun, ro);
-	if (!rc)
+	if (fsg_lun_is_open(curlun)) {
+		LDBG(curlun, "read-only status change prevented\n");
+		rc = -EBUSY;
+	} else {
+		curlun->ro = ro;
+		curlun->initially_ro = ro;
+		LDBG(curlun, "read-only status set to %d\n", curlun->ro);
 		rc = count;
+	}
 	up_read(filesem);
-
 	return rc;
 }
 EXPORT_SYMBOL(fsg_store_ro);
@@ -462,8 +450,7 @@ ssize_t fsg_store_file(struct fsg_lun *curlun, struct rw_semaphore *filesem,
 }
 EXPORT_SYMBOL(fsg_store_file);
 
-ssize_t fsg_store_cdrom(struct fsg_lun *curlun, struct rw_semaphore *filesem,
-			const char *buf, size_t count)
+ssize_t fsg_store_cdrom(struct fsg_lun *curlun, const char *buf, size_t count)
 {
 	bool		cdrom;
 	int		ret;
@@ -472,16 +459,9 @@ ssize_t fsg_store_cdrom(struct fsg_lun *curlun, struct rw_semaphore *filesem,
 	if (ret)
 		return ret;
 
-	down_read(filesem);
-	ret = cdrom ? _fsg_store_ro(curlun, true) : 0;
+	curlun->cdrom = cdrom;
 
-	if (!ret) {
-		curlun->cdrom = cdrom;
-		ret = count;
-	}
-	up_read(filesem);
-
-	return ret;
+	return count;
 }
 EXPORT_SYMBOL(fsg_store_cdrom);
 
