@@ -37,6 +37,7 @@
  * a "gcc --combine ... part1.c part2.c part3.c ... " build would.
  */
 #include "f_ncm.c"
+#include "u_ether.c"
 
 /*-------------------------------------------------------------------------*/
 
@@ -52,8 +53,6 @@
 
 /*-------------------------------------------------------------------------*/
 USB_GADGET_COMPOSITE_OPTIONS();
-
-USB_ETHERNET_MODULE_PARAMETERS();
 
 static struct usb_device_descriptor device_desc = {
 	.bLength =		sizeof device_desc,
@@ -113,7 +112,7 @@ static struct usb_gadget_strings *dev_strings[] = {
 };
 
 struct eth_dev *the_dev;
-static u8 host_mac[ETH_ALEN];
+static u8 hostaddr[ETH_ALEN];
 
 /*-------------------------------------------------------------------------*/
 
@@ -126,7 +125,7 @@ static int __init ncm_do_config(struct usb_configuration *c)
 		c->bmAttributes |= USB_CONFIG_ATT_WAKEUP;
 	}
 
-	return ncm_bind_config(c, host_mac, the_dev);
+	return ncm_bind_config(c, hostaddr, the_dev);
 }
 
 static struct usb_configuration ncm_config_driver = {
@@ -145,8 +144,7 @@ static int __init gncm_bind(struct usb_composite_dev *cdev)
 	int			status;
 
 	/* set up network link layer */
-	the_dev = gether_setup(cdev->gadget, dev_addr, host_addr, host_mac,
-			       qmult);
+	the_dev = gether_setup(cdev->gadget, hostaddr);
 	if (IS_ERR(the_dev))
 		return PTR_ERR(the_dev);
 
