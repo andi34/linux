@@ -155,7 +155,7 @@ static void sec_reboot(char str, const char *cmd)
 		else if (!strcmp(cmd, "fota_bl"))
 			writel(REBOOT_MODE_PREFIX | REBOOT_MODE_FOTA_BL,
 			       S5P_INFORM3);
-		else if (!strcmp(cmd, "recovery"))
+		else if (!strcmp(cmd, "recovery") || !strcmp(cmd, "emergency"))
 			writel(REBOOT_MODE_PREFIX | REBOOT_MODE_RECOVERY,
 			       S5P_INFORM3);
 		else if (!strcmp(cmd, "download"))
@@ -179,8 +179,6 @@ static void sec_reboot(char str, const char *cmd)
 			 && !kstrtoul(cmd + 3, 0, &value))
 			writel(REBOOT_SET_PREFIX | REBOOT_SET_SUD | value,
 			       S5P_INFORM3);
-		else if (!strncmp(cmd, "emergency", 9))
-			writel(0, S5P_INFORM3);
 		else
 			writel(REBOOT_MODE_PREFIX | REBOOT_MODE_NONE,
 			       S5P_INFORM3);
