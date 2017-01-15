@@ -1096,7 +1096,7 @@ static struct platform_driver exynos3250_cmu_isp_driver = {
 	},
 };
 
-static int exynos3250_cmu_platform_init(void)
+static int __init exynos3250_cmu_platform_init(void)
 {
 	return platform_driver_probe(&exynos3250_cmu_isp_driver,
 					exynos3250_cmu_isp_probe);
