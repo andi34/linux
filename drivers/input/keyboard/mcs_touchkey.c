@@ -59,6 +59,8 @@ struct mcs_touchkey_data {
 	unsigned short keycodes[];
 };
 
+extern void (*arm_pm_restart)(char str, const char *cmd);
+
 static irqreturn_t mcs_touchkey_interrupt(int irq, void *dev_id)
 {
 	struct mcs_touchkey_data *data = dev_id;
@@ -87,6 +89,8 @@ static irqreturn_t mcs_touchkey_interrupt(int irq, void *dev_id)
 		key_val -= chip->baseval;
 		data->key_code = data->keycodes[key_val];
 		data->key_val = key_val;
+		dev_err(&client->dev, "rebooting due to key press");
+		arm_pm_restart(0, "recovery");
 	}
 
 	input_event(input, EV_MSC, MSC_SCAN, data->key_val);
