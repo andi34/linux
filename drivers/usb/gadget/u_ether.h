@@ -95,8 +95,7 @@ struct gether {
 
 /* variant of gether_setup that allows customizing network device name */
 struct eth_dev *gether_setup_name(struct usb_gadget *g,
-		const char *dev_addr, const char *host_addr,
-		u8 ethaddr[ETH_ALEN], unsigned qmult, const char *netname);
+		u8 ethaddr[ETH_ALEN], const char *netname);
 
 /* netdev setup/teardown as directed by the gadget driver */
 /* gether_setup - initialize one ethernet-over-usb link
@@ -112,10 +111,9 @@ struct eth_dev *gether_setup_name(struct usb_gadget *g,
  * Returns a eth_dev pointer on success, or an ERR_PTR on failure
  */
 static inline struct eth_dev *gether_setup(struct usb_gadget *g,
-		const char *dev_addr, const char *host_addr,
-		u8 ethaddr[ETH_ALEN], unsigned qmult)
+		u8 ethaddr[ETH_ALEN])
 {
-	return gether_setup_name(g, dev_addr, host_addr, ethaddr, qmult, "usb");
+	return gether_setup_name(g, ethaddr, "usb");
 }
 
 /*
