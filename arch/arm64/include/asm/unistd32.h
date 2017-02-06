@@ -404,7 +404,7 @@ __SYSCALL(379, sys_ni_syscall)			/* 379 for finit_module */
 __SYSCALL(380, sys_ni_syscall)			/* 380 for sched_setattr */
 __SYSCALL(381, sys_ni_syscall)			/* 381 for sched_getattr */
 __SYSCALL(382, sys_ni_syscall)			/* 382 for renameat2 */
-__SYSCALL(383, sys_ni_syscall)			/* 383 for seccomp */
+__SYSCALL(383, sys_seccomp)
 __SYSCALL(384, sys_ni_syscall)			/* 384 for getrandom */
 __SYSCALL(385, sys_memfd_create)
 
