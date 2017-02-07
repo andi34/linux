@@ -1544,6 +1544,14 @@
 		samsung,extcon-online-usb;
 		samsung,extcon-online-charger;
 	};
+
+    /* RGB LED controller */
+    an30259a {
+        rgb-name = "led_r", "led_g", "led_b";
+        rgb-brightness = <0x00 0x00 0x00>;
+        rgb-maxbrightness = <0xFF 0xFF 0xFF>;
+        rgb-flags = <0 0 0>;
+    };
 };
 
 &pinctrl_1 {

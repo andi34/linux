@@ -27,7 +27,6 @@
 #include <linux/err.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
-#include <linux/sec_sysfs.h>
 
 #ifdef CONFIG_LEDS_USE_ED28
 #ifdef CONFIG_SEC_FACTORY
@@ -101,7 +100,7 @@ early_param("jig", jig_check);
 #define	MAX_NUM_LEDS	3
 #define RETRY_COUNT	3
 
-#define SEC_LED_SPECIFIC
+//#define SEC_LED_SPECIFIC
 #define LED_DEEP_DEBUG
 
 static u8 LED_DYNAMIC_CURRENT = 0x28;
@@ -860,7 +859,7 @@ static struct attribute_group sec_led_attr_group = {
 };
 #endif
 
-static int __devinit an30259a_initialize(struct i2c_client *client,
+static int an30259a_initialize(struct i2c_client *client,
 					struct an30259a_platform_data *pdata,
 					struct an30259a_led *led, int channel)
 {
@@ -868,6 +867,7 @@ static int __devinit an30259a_initialize(struct i2c_client *client,
 	struct device *dev = &client->dev;
 	int ret;
 	int i;
+	dev_err(&client->adapter->dev,"%s", __func__);
 
 	/* reset an30259a*/
 	for (i=0; i<RETRY_COUNT; i++) {
@@ -958,12 +958,14 @@ static struct an30259a_platform_data
 		ret = of_property_read_string_index(np, "rgb-name", i,
 						(const char **)&pdata->name[i]);
 		if (IS_ERR_VALUE(ret)) {
+			dev_err(dev, "rgb name not found\n");
 			devm_kfree(dev, pdata);
 			return ERR_PTR(ret);
 		}
 
 		ret = of_property_read_u32_index(np, "rgb-brightness", i, &temp);
 		if (IS_ERR_VALUE(ret)) {
+			dev_err(dev, "rgb brightness not found\n");
 			devm_kfree(dev, pdata);
 			return ERR_PTR(ret);
 		}
@@ -971,6 +973,7 @@ static struct an30259a_platform_data
 
 		ret = of_property_read_u32_index(np, "rgb-maxbrightness", i, &temp);
 		if (IS_ERR_VALUE(ret)) {
+			dev_err(dev, "rgb max brightness not found\n");
 			devm_kfree(dev, pdata);
 			return ERR_PTR(ret);
 		}
@@ -978,6 +981,7 @@ static struct an30259a_platform_data
 
 		ret = of_property_read_u32_index(np, "rgb-flags",i , &temp);
 		if (IS_ERR_VALUE(ret)) {
+			dev_err(dev, "rgb flags not found\n");
 			devm_kfree(dev, pdata);
 			return ERR_PTR(ret);
 		}
@@ -987,14 +991,14 @@ static struct an30259a_platform_data
 	return pdata;
 }
 #endif
-static int __devinit an30259a_probe(struct i2c_client *client,
+static int an30259a_probe(struct i2c_client *client,
 	const struct i2c_device_id *id)
 {
 	struct an30259a_data *data;
 	struct an30259a_platform_data *pdata = NULL;
 	int ret, i;
 
-	dev_dbg(&client->adapter->dev, "%s\n", __func__);
+	dev_err(&client->adapter->dev, "%s\n", __func__);
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 		dev_err(&client->dev, "need I2C_FUNC_I2C.\n");
 		return -ENODEV;
@@ -1014,16 +1018,17 @@ static int __devinit an30259a_probe(struct i2c_client *client,
 #ifdef CONFIG_OF
 	pdata = of_an30259a_parse_dt(&client->dev);
 	if (unlikely(IS_ERR(pdata))){
+		dev_err(&client->dev, "DT parse failure");
 		return PTR_ERR(pdata);
 	}
 #else
 	pdata = dev_get_platdata(dev);
 #endif
-
+	dev_err(&client->adapter->dev, "%s", __func__);
 	mutex_init(&data->mutex);
 	/* initialize LED */
 	for (i = 0; i < MAX_NUM_LEDS; i++) {
-
+		dev_err(&client->adapter->dev, "%s: initializing led %d", __func__, i);
 		ret = an30259a_initialize(client, pdata, &data->leds[i], i);
 
 		if (ret < 0) {
@@ -1042,7 +1047,7 @@ static int __devinit an30259a_probe(struct i2c_client *client,
 		}
 #endif
 #endif
-#ifdef SEC_LED_SPECIFIC
+#if 0
 	led_dev = sec_device_create(data, "led");
 	if (IS_ERR(led_dev)) {
 		dev_err(&client->dev,
@@ -1059,7 +1064,7 @@ static int __devinit an30259a_probe(struct i2c_client *client,
 #endif
 	pr_info("an30259_end_probe\n");
 	return ret;
-#ifdef SEC_LED_SPECIFIC
+#if 0
 exit_sysfs:
 	sec_device_destroy(led_dev->devt);
 #endif
@@ -1069,12 +1074,12 @@ exit:
 	return ret;
 }
 
-static int __devexit an30259a_remove(struct i2c_client *client)
+static int an30259a_remove(struct i2c_client *client)
 {
 	struct an30259a_data *data = i2c_get_clientdata(client);
 	int i;
 	dev_dbg(&client->adapter->dev, "%s\n", __func__);
-#ifdef SEC_LED_SPECIFIC
+#if 0
 	sysfs_remove_group(&led_dev->kobj, &sec_led_attr_group);
 #endif
 	for (i = 0; i < MAX_NUM_LEDS; i++) {
@@ -1102,21 +1107,10 @@ static struct i2c_driver an30259a_i2c_driver = {
 	},
 	.id_table = an30259a_id,
 	.probe = an30259a_probe,
-	.remove = __devexit_p(an30259a_remove),
+	.remove = an30259a_remove,
 };
 
-static int __init an30259a_init(void)
-{
-	return i2c_add_driver(&an30259a_i2c_driver);
-}
-
-static void __exit an30259a_exit(void)
-{
-	i2c_del_driver(&an30259a_i2c_driver);
-}
-
-module_init(an30259a_init);
-module_exit(an30259a_exit);
+module_i2c_driver(an30259a_i2c_driver);
 
 MODULE_DESCRIPTION("AN30259A LED driver");
 MODULE_AUTHOR("Haeil Hyun <haeil.hyun@samsung.com");
