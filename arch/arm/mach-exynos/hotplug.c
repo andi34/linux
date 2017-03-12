@@ -101,7 +101,9 @@ static inline void cpu_leave_lowpower(void)
 void exynos_power_down_cpu(unsigned int cpu)
 {
 	struct cpumask mask;
+#ifdef CONFIG_SCHED_HMP
 	int type = !cpumask_and(&mask, cpu_online_mask, cpu_coregroup_mask(cpu));
+#endif
 
 	set_boot_flag(cpu, HOTPLUG);
 	exynos_cpu.power_down(cpu);
@@ -109,11 +111,13 @@ void exynos_power_down_cpu(unsigned int cpu)
 #ifdef CONFIG_EXYNOS_CLUSTER_POWER_DOWN
 	if (soc_is_exynos5422()) {
 		u32 cluster_id = MPIDR_AFFINITY_LEVEL(cpu_logical_map(cpu), 1);
+#ifdef CONFIG_SCHED_HMP
 		if (type)
 			__raw_writel(0, EXYNOS_COMMON_CONFIGURATION(cluster_id));
+#endif
 	}
 #endif
-#ifdef CONFIG_ARM_TRUSTZONE
+#if defined(CONFIG_ARM_TRUSTZONE) && defined(CONFIG_SCHED_HMP) // TODO: exynos4 doesn't seem to support this
 	exynos_smc(SMC_CMD_SHUTDOWN,
 		   OP_TYPE_CLUSTER & type,
 		   SMC_POWERSTATE_IDLE,
