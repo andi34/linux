@@ -1025,14 +1025,14 @@ void __init exynos4_clk_init(struct device_node *np, enum exynos4_soc exynos4_so
 		vpll = samsung_clk_register_pll46xx("fout_vpll", "mout_vpllsrc",
 					reg_base + VPLL_CON0, pll_4650c);
 	} else {
-		apll = samsung_clk_register_pll35xx("fout_apll", "fin_pll",
-					reg_base + APLL_CON0);
-		mpll = samsung_clk_register_pll35xx("fout_mpll", "fin_pll",
-					reg_base + E4X12_MPLL_CON0);
-		epll = samsung_clk_register_pll36xx("fout_epll", "fin_pll",
-					reg_base + EPLL_CON0);
-		vpll = samsung_clk_register_pll36xx("fout_vpll", "fin_pll",
-					reg_base + VPLL_CON0);
+		apll = samsung_clk_register_pll35xx("fout_apll", "fin_pll", NULL,
+					reg_base + APLL_CON0, NULL, 0);
+		mpll = samsung_clk_register_pll35xx("fout_mpll", "fin_pll", NULL,
+					reg_base + E4X12_MPLL_CON0, NULL, 0);
+		epll = samsung_clk_register_pll36xx("fout_epll", "fin_pll", NULL,
+					reg_base + EPLL_CON0, NULL, 0);
+		vpll = samsung_clk_register_pll36xx("fout_vpll", "fin_pll", NULL,
+					reg_base + VPLL_CON0, NULL, 0);
 	}
 
 	samsung_clk_add_lookup(apll, fout_apll);

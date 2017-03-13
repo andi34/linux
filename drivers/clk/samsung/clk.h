@@ -132,6 +132,9 @@ struct samsung_mux_clock {
 #define MUX_A(_id, cname, pnames, o, s, w, a)			\
 	__MUX(_id, NULL, cname, pnames, o, s, w, 0, 0, a, 0, 0, 0)
 
+#define MUX_F(_id, cname, pnames, o, s, w, f, mf)		\
+    __MUX(_id, NULL, cname, pnames, o, s, w, f, mf, NULL, 0, 0, 0)
+
 #define MUX_STAT(_id, cname, pnames, o, s, w, so, ss, sw)			\
 	__MUX(_id, NULL, cname, pnames, o, s, w, 0, 0, NULL, so, ss, sw)
 #define CMX_S_A(_id, o, s, w, a, so, ss, sw) \
