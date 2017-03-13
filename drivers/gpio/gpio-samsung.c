@@ -2726,7 +2726,6 @@ static struct samsung_gpio_chip exynos5_gpios_4[] = {
 #endif
 
 
-#if (defined(CONFIG_SOC_EXYNOS4210) || defined(CONFIG_SOC_EXYNOS5250))
 #ifdef CONFIG_OF
 static int exynos_gpio_xlate(struct gpio_chip *gc,
 			const struct of_phandle_args *gpiospec, u32 *flags)
@@ -2782,14 +2781,13 @@ static __init void exynos_gpiolib_attach_ofnode(struct samsung_gpio_chip *chip,
 	gc->of_gpio_n_cells = 4;
 	gc->of_xlate = exynos_gpio_xlate;
 }
-#elif /* CONFIG_OF */
+#else /* CONFIG_OF */
 static __init void exynos_gpiolib_attach_ofnode(struct samsung_gpio_chip *chip,
 						u64 base, u64 offset)
 {
 	return;
 }
 #endif /* CONFIG_OF */
-#endif /* defined(CONFIG_SOC_EXYNOS4210) || defined(CONFIG_SOC_EXYNOS5250)) */
 
 static __init void exynos4_gpiolib_init(void)
 {

@@ -42,6 +42,7 @@
 #include <mach/regs-pmu.h>
 #include <mach/regs-gpio.h>
 #include <mach/irqs.h>
+#include <mach/pmu.h>
 
 #include <plat/cpu.h>
 #include <plat/devs.h>

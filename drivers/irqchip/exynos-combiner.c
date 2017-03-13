@@ -18,6 +18,7 @@
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
 #include <asm/mach/irq.h>
+#include <mach/irqs.h>
 #include <linux/syscore_ops.h>
 
 #ifdef CONFIG_EXYNOS_ATAGS

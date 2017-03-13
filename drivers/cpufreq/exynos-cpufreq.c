@@ -325,8 +325,10 @@ static int __init exynos_cpufreq_init(void)
 		ret = exynos4x12_cpufreq_init(exynos_info);
 	else if (soc_is_exynos5250())
 		ret = exynos5250_cpufreq_init(exynos_info);
+#ifdef CONFIG_ARM_EXYNOS3250_CPUFREQ
 	else if (soc_is_exynos3250())
 		ret = exynos3250_cpufreq_init(exynos_info);
+#endif
 	else
 		return 0;
 
