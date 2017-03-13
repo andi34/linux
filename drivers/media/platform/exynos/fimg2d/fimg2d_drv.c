@@ -130,13 +130,13 @@ void fimg2d_pm_qos_remove(struct fimg2d_control *ctrl)
 
 void fimg2d_pm_qos_update(struct fimg2d_control *ctrl, enum fimg2d_qos_status status)
 {
+	unsigned long qflags;
+	enum fimg2d_qos_level idx;
 #if defined(CONFIG_ARM_EXYNOS_IKS_CPUFREQ) || \
 	defined(CONFIG_ARM_EXYNOS_MP_CPUFREQ) || \
 	defined(CONFIG_FIMG2D_USE_BUS_DEVFREQ)
 	struct fimg2d_platdata *pdata;
-	enum fimg2d_qos_level idx;
 	int ret = 0;
-	unsigned long qflags;
 
 #ifdef CONFIG_OF
 	pdata = ctrl->pdata;
@@ -176,8 +176,8 @@ void fimg2d_pm_qos_update(struct fimg2d_control *ctrl, enum fimg2d_qos_status st
 			fimg2d_debug("idx:%d, freq_cpu:%d, freq_kfc:%d\n",
 					idx, g2d_qos_table[idx].freq_cpu,
 					g2d_qos_table[idx].freq_kfc);
-		}
 #endif
+		}
 	} else if (status == FIMG2D_QOS_OFF) {
 #ifdef CONFIG_FIMG2D_USE_BUS_DEVFREQ
 		pm_qos_update_request(&ctrl->exynos5_g2d_mif_qos, 0);
@@ -188,8 +188,10 @@ void fimg2d_pm_qos_update(struct fimg2d_control *ctrl, enum fimg2d_qos_status st
 		pm_qos_update_request(&ctrl->exynos5_g2d_cpu_qos, 0);
 		pm_qos_update_request(&ctrl->exynos5_g2d_kfc_qos, 0);
 #endif
+#ifdef CONFIG_FIMG2D_USE_BUS_DEVFREQ
 		if (idx == 0)
 			ret = set_hmp_boost(false);
+#endif
 	}
 err:
 	fimg2d_debug("invalid qos_lv:%d\n", ctrl->qos_lv);

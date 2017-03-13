@@ -504,7 +504,7 @@ static void outer_flush_clip_range(struct fimg2d_bltcmd *cmd)
 	struct fimg2d_clip *clp;
 	struct fimg2d_rect *r;
 	struct fimg2d_dma *c;
-	int clp_x, clp_w, clp_h, y, i, dir;
+	int clp_x, clp_w, clp_h, y, i, dir, bpp, stride;
 	int x1, y1, x2, y2;
 	unsigned long start;
 
