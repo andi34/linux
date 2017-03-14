@@ -385,6 +385,7 @@ static inline unsigned int r2h_bits(int cmd)
 #define S5P_FIMV_RISC_ON			-1
 #define S5P_FIMV_RISC_BASE_ADDRESS		-1
 #define S5P_FIMV_CODEC_VP8_DEC			-1
+#define S5P_FIMV_CODEC_VP8_ENC			-1
 #define S5P_FIMV_REG_CLEAR_BEGIN		0
 #define S5P_FIMV_REG_CLEAR_COUNT		0
 #define S5P_FIMV_CRC_DISP_LUMA0			S5P_FIMV_CRC_LUMA0
@@ -397,6 +398,9 @@ static inline unsigned int r2h_bits(int cmd)
 #define S5P_FIMV_MFC_VERSION			0
 #define S5P_FIMV_ERR_FRAME_CONCEAL		-1
 #define S5P_FIMV_R2H_CMD_DPB_FLUSH_RET		-2
+#define S5P_FIMV_R2H_CMD_CACHE_FLUSH_RET	-3
+#define S5P_FIMV_R2H_CMD_COMPLETE_SEQ_RET	-4
+
 
 /* Error handling defines */
 #define S5P_FIMV_ERR_WARNINGS_START		145

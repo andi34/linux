@@ -1258,6 +1258,7 @@ static struct s5p_mfc_ctrl_cfg mfc_ctrl_list[] = {
 		.read_cst = enc_ctrl_read_cst,
 		.write_cst = NULL,
 	},
+#ifdef S5P_FIMV_NEW_RC_QP_BOUND
 	{	/* H.264 QP Max change */
 		.type = MFC_CTRL_TYPE_SET,
 		.id = V4L2_CID_MPEG_VIDEO_H264_MAX_QP,
@@ -1354,6 +1355,7 @@ static struct s5p_mfc_ctrl_cfg mfc_ctrl_list[] = {
 		.flag_addr = S5P_FIMV_PARAM_CHANGE_FLAG,
 		.flag_shft = 4,
 	},
+#endif
 };
 
 #define NUM_CTRL_CFGS ARRAY_SIZE(mfc_ctrl_list)

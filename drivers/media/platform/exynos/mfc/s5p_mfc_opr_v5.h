@@ -40,11 +40,11 @@ int s5p_mfc_set_dec_stream_buffer(struct s5p_mfc_ctx *ctx, dma_addr_t buf_addr,
 						  unsigned int buf_size);
 
 void s5p_mfc_set_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
-		dma_addr_t y_addr, dma_addr_t c_addr);
+		dma_addr_t addr[], int num_planes);
 int s5p_mfc_set_enc_stream_buffer(struct s5p_mfc_ctx *ctx,
 		dma_addr_t addr, unsigned int size);
 void s5p_mfc_get_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
-		dma_addr_t *y_addr, dma_addr_t *c_addr);
+		dma_addr_t addr[], int num_planes);
 int s5p_mfc_set_enc_ref_buffer(struct s5p_mfc_ctx *mfc_ctx);
 
 int s5p_mfc_decode_one_frame(struct s5p_mfc_ctx *ctx, int last_frame);
@@ -109,6 +109,7 @@ void s5p_mfc_enc_calc_src_size(struct s5p_mfc_ctx *ctx);
 
 #define mfc_get_disp_first_addr()	-1
 #define mfc_get_dec_first_addr()	-1
+#define mfc_get_dec_used_flag()		-1
 
 #define s5p_mfc_get_enc_strm_size()	readl(dev->regs_base + \
 						S5P_FIMV_ENC_SI_STRM_SIZE)

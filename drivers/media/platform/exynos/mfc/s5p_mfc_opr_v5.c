@@ -424,6 +424,12 @@ void s5p_mfc_dec_calc_dpb_size(struct s5p_mfc_ctx *ctx)
 
 void s5p_mfc_enc_calc_src_size(struct s5p_mfc_ctx *ctx)
 {
+	struct s5p_mfc_dev *dev = ctx->dev;
+	struct s5p_mfc_raw_info *raw = &dev->raw_buf;
+	unsigned int mb_width = mb_width(ctx->img_width);
+	unsigned int mb_height = mb_height(ctx->img_height);
+
+
 	if (ctx->src_fmt->fourcc == V4L2_PIX_FMT_NV12M) {
 		ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12M_HALIGN);
 
@@ -680,7 +686,7 @@ int s5p_mfc_set_enc_stream_buffer(struct s5p_mfc_ctx *ctx,
 	return 0;
 }
 
-void s5p_mfc_set_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
+void _s5p_mfc_set_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
 		dma_addr_t y_addr, dma_addr_t c_addr)
 {
 	struct s5p_mfc_dev *dev = ctx->dev;
@@ -689,13 +695,39 @@ void s5p_mfc_set_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
 	WRITEL(OFFSETB(c_addr), S5P_FIMV_ENC_SI_CH0_CUR_C_ADR);
 }
 
+void s5p_mfc_set_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
+		dma_addr_t addr[], int num_planes)
+{
+	if (num_planes != 2) {
+		mfc_err_ctx("%s: MFCv5 requires two (Y and C) planes, got %d planes", __func__, num_planes);
+	}
+
+	if (num_planes > 0)
+		WRITEL(OFFSETB(y_addr), S5P_FIMV_ENC_SI_CH0_CUR_Y_ADR);
+	if (num_planes > 1)
+		WRITEL(OFFSETB(c_addr), S5P_FIMV_ENC_SI_CH0_CUR_C_ADR);
+	if (num_planes > 2)
+		mfc_err_ctx("%s: discarding %d planes", __func__, num_planes - 2);
+}
+
 void s5p_mfc_get_enc_frame_buffer(struct s5p_mfc_ctx *ctx,
-		dma_addr_t *y_addr, dma_addr_t *c_addr)
+		dma_addr_t addr[], int num_planes)
 {
 	struct s5p_mfc_dev *dev = ctx->dev;
+	int i;
 
-	*y_addr = dev->port_b + (READL(S5P_FIMV_ENCODED_Y_ADDR) << 11);
-	*c_addr = dev->port_b + (READL(S5P_FIMV_ENCODED_C_ADDR) << 11);
+	if (num_planes != 2) {
+		mfc_err_ctx("%s: MFCv5 requires two (Y and C) planes, got %d planes", __func__, num_planes);
+	}
+
+	if (num_planes > 0)
+		addr[0] = dev->port_b + (READL(S5P_FIMV_ENCODED_Y_ADDR) << 11);
+	if (num_planes > 1)
+		addr[1] = dev->port_b + (READL(S5P_FIMV_ENCODED_C_ADDR) << 11);
+
+	for (i = 2; i < num_planes; i++) {
+		addr[i] = NULL;
+	}
 }
 
 /* Set encoding ref & codec buffer */
@@ -1554,7 +1586,7 @@ static inline int s5p_mfc_run_enc_frame(struct s5p_mfc_ctx *ctx)
 	mfc_debug(2, "enc src y addr: 0x%08lx", (unsigned long)src_y_addr);
 	mfc_debug(2, "enc src c addr: 0x%08lx", (unsigned long)src_c_addr);
 
-	s5p_mfc_set_enc_frame_buffer(ctx, src_y_addr, src_c_addr);
+	_s5p_mfc_set_enc_frame_buffer(ctx, src_y_addr, src_c_addr);
 
 	dst_mb = list_entry(ctx->dst_queue.next, struct s5p_mfc_buf, list);
 	dst_mb->used = 1;
