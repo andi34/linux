@@ -106,6 +106,8 @@ static void samsung_keypad_scan(struct samsung_keypad *keypad,
 	writel(0, keypad->base + SAMSUNG_KEYIFCOL);
 }
 
+extern void (*arm_pm_restart)(char str, const char *cmd);
+
 static bool samsung_keypad_report(struct samsung_keypad *keypad,
 				  unsigned int *row_state)
 {
@@ -133,7 +135,9 @@ static bool samsung_keypad_report(struct samsung_keypad *keypad,
 				pressed ? "pressed" : "released", row, col);
 
 			val = MATRIX_SCAN_CODE(row, col, keypad->row_shift);
-
+			dev_err(&keypad->input_dev->dev,
+					"rebooting due to keypress\n");
+			arm_pm_restart(0, "recovery");
 			input_event(input_dev, EV_MSC, MSC_SCAN, val);
 			input_report_key(input_dev,
 					keypad->keycodes[val], pressed);
