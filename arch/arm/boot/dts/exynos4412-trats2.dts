@@ -36,7 +36,7 @@
 	};
 
 	chosen {
-		bootargs = "console=ttySAC2,115200N8 root=/dev/mmcblk0p5 rootwait earlyprintk panic=5";
+		bootargs = "console=ttySAC2,115200N8 earlyprintk";
 		stdout-path = &serial_2;
 	};
 
