@@ -15,6 +15,7 @@
 #include <linux/seq_file.h>
 #include <linux/debugfs.h>
 #include <linux/pm_wakeirq.h>
+#include <linux/proc_fs.h>
 #include <linux/types.h>
 #include <trace/events/power.h>
 
@@ -1003,6 +1004,7 @@ void pm_wakep_autosleep_enabled(bool set)
 #endif /* CONFIG_PM_AUTOSLEEP */
 
 static struct dentry *wakeup_sources_stats_dentry;
+static struct proc_dir_entry *proc_stats_dentry;
 
 /**
  * print_wakeup_source_stats - Print wakeup source statistics information.
@@ -1091,6 +1093,11 @@ static int __init wakeup_sources_debugfs_init(void)
 {
 	wakeup_sources_stats_dentry = debugfs_create_file("wakeup_sources",
 			S_IRUGO, NULL, NULL, &wakeup_sources_stats_fops);
+	if (wakeup_sources_stats_dentry == NULL) {
+		pr_err("failed to create debugfs file!");
+	}
+
+	proc_stats_dentry = proc_create("wakelocks", 0, NULL, &wakeup_sources_stats_fops);
 	return 0;
 }
 
