@@ -208,7 +208,7 @@ static int mcs_touchkey_probe(struct i2c_client *client,
 	}
 	dev_info(&client->dev, "Firmware version: %d\n", fw_ver);
 
-	strlcpy(data->name, "MELFAS MCS Touchkey", sizeof(data->name));
+	strlcpy(data->name, "sec_touchkey", sizeof(data->name));
 
 	input_dev->name = data->name;
 	input_dev->id.bustype = BUS_I2C;
