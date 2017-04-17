@@ -7,6 +7,7 @@
 #include <linux/errno.h>
 #include <asm/setup.h>
 
+#if 0
 static struct {
 	u32 special_mark_1;
 	u32 special_mark_2;
@@ -38,6 +39,7 @@ void sec_getlog_supply_fbinfo(void *p_fb, u32 xres, u32 yres, u32 bpp,
 	}
 }
 EXPORT_SYMBOL(sec_getlog_supply_fbinfo);
+#endif
 
 static struct {
 	u32 special_mark_1;
@@ -116,13 +118,13 @@ EXPORT_SYMBOL(sec_getlog_supply_kloginfo);
 
 static int __init sec_getlog_init(void)
 {
-	marks_ver_mark.mem[0].size =
+/*	marks_ver_mark.mem[0].size =
 		meminfo.bank[0].size + meminfo.bank[1].size;
 	marks_ver_mark.mem[0].addr = meminfo.bank[0].start;
 	marks_ver_mark.mem[1].size =
 		meminfo.bank[2].size + meminfo.bank[3].size;
 	marks_ver_mark.mem[1].addr = meminfo.bank[2].start;
-
+*/
 	return 0;
 }
 
