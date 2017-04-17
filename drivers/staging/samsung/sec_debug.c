@@ -9,7 +9,6 @@
 #include <linux/reboot.h>
 #include <linux/input.h>
 #include <linux/delay.h>
-#include <mach/regs-pmu.h>
 #include <asm/cacheflush.h>
 #include <asm/io.h>
 #include <linux/sched.h>
@@ -29,11 +28,11 @@
 #include <linux/module.h>
 #include <linux/platform_device.h>
 
-#include <mach/regs-clock.h>
-#include <plat/map-base.h>
-#include <plat/map-s5p.h>
+/*#include <plat/map-base.h>
+#include <plat/map-s5p.h>*/
+#include <linux/soc/samsung/exynos-regs-pmu.h>
 #include <asm/mach/map.h>
-#include <plat/regs-watchdog.h>
+//#include <plat/regs-watchdog.h>
 #include <linux/seq_file.h>
 #include <linux/sec_debug.h>
 #include <linux/of.h>
@@ -43,7 +42,6 @@
 
 extern void exynos_pmu_debug_save(void);
 extern void exynos_cmu_debug_save(void);
-extern void (*arm_pm_restart)(char str, const char *cmd);
 
 #if defined(CONFIG_SEC_DEBUG) && defined(CONFIG_SEC_DEBUG_SUBSYS)
 struct sec_debug_subsys *subsys_info=0;
@@ -162,6 +160,7 @@ struct rwsem_debug {
  1024~0x1000: panic dumper log
       0x4000: copy of magic
  */
+#define S5P_PA_SDRAM 0x40000000 // Exynos4 value from tizen 3.10
 #if defined(CONFIG_SPARSEMEM)
 #define SEC_DEBUG_MAGIC_PA (S5P_PA_SDRAM)
 #else
@@ -600,9 +599,9 @@ static void sec_debug_set_upload_cause(enum sec_debug_upload_cause_t type)
 	per_cpu(sec_debug_upload_cause, smp_processor_id()) = type;
 
 	/* to check VDD_ALIVE / XnRESET issue */
-	__raw_writel(type, S5P_INFORM3);
+/*	__raw_writel(type, S5P_INFORM3);
 	__raw_writel(type, S5P_INFORM4);
-	__raw_writel(type, S5P_INFORM6);
+	__raw_writel(type, S5P_INFORM6);*/
 
 	pr_emerg("(%s) %x\n", __func__, type);
 }
@@ -833,9 +832,9 @@ void sec_debug_panic_handler_safe(struct pt_regs *regs)
 
 	per_cpu(sec_debug_upload_cause, 0) = type;
 
-	__raw_writel(type, S5P_INFORM3);
+/*	__raw_writel(type, S5P_INFORM3);
 	__raw_writel(type, S5P_INFORM4);
-	__raw_writel(type, S5P_INFORM6);
+	__raw_writel(type, S5P_INFORM6);*/
 
 #ifdef CONFIG_SEC_DEBUG_PMU_LOG
 	exynos_pmu_debug_save();

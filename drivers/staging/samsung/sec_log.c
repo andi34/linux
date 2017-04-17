@@ -9,11 +9,8 @@
 #include <linux/memblock.h>
 
 #include <linux/sec_debug.h>
-#include <plat/map-base.h>
 #include <asm/mach/map.h>
 #include <asm/tlbflush.h>
-#include <mach/regs-pmu.h>
-#include <mach/regs-clock.h>
 
 /*
  * Example usage: sec_log=256K@0x45000000

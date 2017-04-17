@@ -539,7 +539,7 @@ static char *seclog_buf;
 static unsigned *seclog_ptr;
 static size_t seclog_size;
 static char sec_text[LOG_LINE_MAX + PREFIX_MAX];
-static size_t msg_print_text(const struct log *msg, enum log_flags prev,
+static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
 			     bool syslog, char *buf, size_t size);
 
 void register_log_text_hook(void (*f)(char *text, size_t size), char * buf,
@@ -548,7 +548,7 @@ void register_log_text_hook(void (*f)(char *text, size_t size), char * buf,
 	unsigned long flags;
 	u64 seq = 0;
 	u32 idx = 0;
-	struct log *msg;
+	struct printk_log *msg;
 	size_t size;
 
 	raw_spin_lock_irqsave(&logbuf_lock, flags);
