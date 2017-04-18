@@ -927,7 +927,7 @@ static int io_dev_recv_data_from_link_dev(struct io_device *iod,
 	case IPC_RAW:
 	case IPC_MULTI_RAW:
 		if (iod->waketime)
-#ifdef CONFIG_PM_WAKELOCKS
+#if 0
 			wake_lock_timeout(&iod->wakelock, iod->waketime);
 #else
 			pm_wakeup_event(iod->miscdev.this_device,
@@ -1016,7 +1016,7 @@ static void io_dev_sim_state_changed(struct io_device *iod, bool sim_online)
 	} else {
 		iod->mc->sim_state.online = sim_online;
 		iod->mc->sim_state.changed = true;
-#ifdef CONFIG_PM_WAKELOCKS
+#if 0
 		wake_lock_timeout(&iod->mc->bootd->wakelock,
 						iod->mc->bootd->waketime);
 #else

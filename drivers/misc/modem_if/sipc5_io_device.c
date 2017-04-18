@@ -857,7 +857,7 @@ static int io_dev_recv_data_from_link_dev(struct io_device *iod,
 	case IPC_RAW:
 	case IPC_RFS:
 	case IPC_MULTI_RAW:
-#ifdef CONFIG_PM_WAKELOCKS
+#if 0
 		if (iod->waketime)
 			wake_lock_timeout(&iod->wakelock, iod->waketime);
 #endif
@@ -961,7 +961,7 @@ static int io_dev_recv_skb_from_link_dev(struct io_device *iod,
 	case IPC_RAW:
 	case IPC_RFS:
 	case IPC_MULTI_RAW:
-#ifdef CONFIG_PM_WAKELOCKS
+#if 0
 		if (iod->waketime)
 			wake_lock_timeout(&iod->wakelock, iod->waketime);
 #endif
