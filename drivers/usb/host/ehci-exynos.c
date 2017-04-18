@@ -45,6 +45,7 @@ static struct hc_driver __read_mostly exynos_ehci_hc_driver;
 struct exynos_ehci_hcd {
 	struct clk *clk;
 	struct phy *phy[PHY_NUMBER];
+	int power_on;
 };
 
 #define to_exynos_ehci(hcd) (struct exynos_ehci_hcd *)(hcd_to_ehci(hcd)->priv)
@@ -101,10 +102,13 @@ static int exynos_ehci_phy_enable(struct device *dev)
 	for (i = 0; ret == 0 && i < PHY_NUMBER; i++)
 		if (!IS_ERR(exynos_ehci->phy[i]))
 			ret = phy_power_on(exynos_ehci->phy[i]);
-	if (ret)
+	if (ret) {
 		for (i--; i >= 0; i--)
 			if (!IS_ERR(exynos_ehci->phy[i]))
 				phy_power_off(exynos_ehci->phy[i]);
+	} else {
+		exynos_ehci->power_on = 1;
+	}
 
 	return ret;
 }
@@ -118,6 +122,7 @@ static void exynos_ehci_phy_disable(struct device *dev)
 	for (i = 0; i < PHY_NUMBER; i++)
 		if (!IS_ERR(exynos_ehci->phy[i]))
 			phy_power_off(exynos_ehci->phy[i]);
+	exynos_ehci->power_on = 0;
 }
 
 static void exynos_setup_vbus_gpio(struct device *dev)
@@ -137,6 +142,49 @@ static void exynos_setup_vbus_gpio(struct device *dev)
 	if (err)
 		dev_err(dev, "can't request ehci vbus gpio %d", gpio);
 }
+
+static ssize_t show_ehci_power(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct usb_hcd *hcd = dev_get_drvdata(dev);
+	struct exynos_ehci_hcd *exynos_ehci = to_exynos_ehci(hcd);
+
+	return sprintf(buf, "EHCI Power %s\n", (exynos_ehci->power_on ? "on" : "off"));
+}
+
+static ssize_t store_ehci_power(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct usb_hcd *hcd = dev_get_drvdata(dev);
+	struct exynos_ehci_hcd *exynos_ehci = to_exynos_ehci(hcd);
+
+	int new_state, irq, err;
+
+	if (sscanf(buf, "%d", &new_state) != 1) {
+		return -EINVAL;
+	}
+
+	if (!new_state && exynos_ehci->power_on) {
+		usb_remove_hcd(hcd);
+		exynos_ehci_phy_disable(dev);
+		clk_disable_unprepare(exynos_ehci->clk);
+	} else if (new_state && !exynos_ehci->power_on) {
+		clk_prepare_enable(exynos_ehci->clk);
+		irq = platform_get_irq(to_platform_device(dev), 0);
+		err = usb_add_hcd(hcd, irq, IRQF_SHARED);
+		if (err < 0) {
+			dev_err(dev, "Failed to power on!");
+		} else {
+			/* DMA burst Enable */
+			writel(EHCI_INSNREG00_ENABLE_DMA_BURST, EHCI_INSNREG00(hcd->regs));
+			exynos_ehci_phy_enable(dev);
+		}
+	}
+	return count;
+}
+
+static DEVICE_ATTR(ehci_power, 0664, show_ehci_power, store_ehci_power);
+
 
 static int exynos_ehci_probe(struct platform_device *pdev)
 {
@@ -225,6 +273,7 @@ skip_phy:
 	device_wakeup_enable(hcd->self.controller);
 
 	platform_set_drvdata(pdev, hcd);
+	device_create_file(&pdev->dev, &dev_attr_ehci_power);
 
 	return 0;
 
@@ -241,6 +290,8 @@ static int exynos_ehci_remove(struct platform_device *pdev)
 {
 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
 	struct exynos_ehci_hcd *exynos_ehci = to_exynos_ehci(hcd);
+
+	device_remove_file(&pdev->dev, &dev_attr_ehci_power);
 
 	usb_remove_hcd(hcd);
 
