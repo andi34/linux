@@ -22,8 +22,6 @@
 #include <linux/gpio.h>
 #include <linux/delay.h>
 #include <linux/platform_device.h>
-#include <plat/devs.h>
-#include <plat/gpio-cfg.h>
 #include <linux/platform_data/modem.h>
 #include "modem_prj.h"
 

@@ -92,7 +92,7 @@ struct link_pm_data {
 	bool link_pm_active;
 	int resume_retry_cnt;
 
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 	struct wake_lock l2_wake;
 	struct wake_lock boot_wake;
 	struct wake_lock rpm_wake;

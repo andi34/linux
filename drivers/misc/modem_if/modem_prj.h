@@ -20,7 +20,7 @@
 #include <linux/miscdevice.h>
 #include <linux/skbuff.h>
 #include <linux/completion.h>
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 #include <linux/wakelock.h>
 #endif
 #include <linux/rbtree.h>
@@ -353,7 +353,7 @@ struct io_device {
 	struct modem_ctl *mc;
 	struct modem_shared *msd;
 
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 	struct wake_lock wakelock;
 #endif
 	long waketime;
@@ -562,7 +562,7 @@ struct modem_ctl {
 #endif /*CONFIG_LTE_MODEM_CMC221*/
 #if defined(CONFIG_MACH_GRANDE)
 	struct delayed_work sim_det_dwork;
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 #endif
 #endif /* For checking sim detect pin */
 	struct work_struct work;
@@ -580,7 +580,7 @@ struct modem_ctl {
 	struct io_device *bootd;
 
 	/* Wakelock for modem_ctl */
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 	struct wake_lock mc_wake_lock;
 #endif
 
