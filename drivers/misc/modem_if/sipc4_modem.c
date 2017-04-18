@@ -47,7 +47,7 @@
 #define RAW_WAKE_TIME   (HZ*6)
 
 /* pdp for SLP, rmnet for others */
-#define NET_DEVICE_NAME(n) "pdp"#n
+#define NET_DEVICE_NAME(n) "rmnet"#n
 
 /* umts target platform data */
 static struct modem_io_t umts_io_devices[] = {
