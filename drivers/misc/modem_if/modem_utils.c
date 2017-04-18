@@ -37,7 +37,7 @@
 #include <linux/irq.h>
 #include <linux/gpio.h>
 #include <linux/delay.h>
-#ifdef CONFIG_PM_WAKELOCKS
+#if 0
 #include <linux/wakelock.h>
 #endif
 

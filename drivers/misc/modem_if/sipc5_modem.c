@@ -31,7 +31,7 @@
 #include <linux/irq.h>
 #include <linux/gpio.h>
 #include <linux/delay.h>
-#ifdef CONFIG_PM_WAKELOCKS
+#if 0
 #include <linux/wakelock.h>
 #endif
 #include <linux/rbtree.h>
@@ -198,7 +198,7 @@ static int attach_devices(struct io_device *iod, enum modem_link tx_link)
 		BUG();
 	}
 
-#ifdef CONFIG_PM_WAKELOCKS
+#if 0
 	switch (iod->format) {
 	case IPC_FMT:
 		wake_lock_init(&iod->wakelock, WAKE_LOCK_SUSPEND, iod->name);
