@@ -30,7 +30,7 @@
 #include <linux/irq.h>
 #include <linux/gpio.h>
 #include <linux/delay.h>
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 #include <linux/wakelock.h>
 #endif
 #include <linux/rbtree.h>
@@ -290,7 +290,7 @@ static int attach_devices(struct io_device *iod, enum modem_link tx_link)
 
 	switch (iod->format) {
 	case IPC_FMT:
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 		wake_lock_init(&iod->wakelock, WAKE_LOCK_SUSPEND, iod->name);
 #else
 		device_init_wakeup(iod->miscdev.this_device, true);
@@ -299,7 +299,7 @@ static int attach_devices(struct io_device *iod, enum modem_link tx_link)
 		break;
 
 	case IPC_RFS:
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 		wake_lock_init(&iod->wakelock, WAKE_LOCK_SUSPEND, iod->name);
 #else
 		device_init_wakeup(iod->miscdev.this_device, true);
@@ -308,7 +308,7 @@ static int attach_devices(struct io_device *iod, enum modem_link tx_link)
 		break;
 
 	case IPC_MULTI_RAW:
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 		wake_lock_init(&iod->wakelock, WAKE_LOCK_SUSPEND, iod->name);
 #else
 		device_init_wakeup(iod->miscdev.this_device, true);
@@ -316,7 +316,7 @@ static int attach_devices(struct io_device *iod, enum modem_link tx_link)
 		iod->waketime = RAW_WAKE_TIME;
 		break;
 	case IPC_BOOT:
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 		wake_lock_init(&iod->wakelock, WAKE_LOCK_SUSPEND, iod->name);
 #else
 		device_init_wakeup(iod->miscdev.this_device, true);

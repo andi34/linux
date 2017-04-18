@@ -22,6 +22,7 @@
 #include <linux/gpio.h>
 #include <linux/if_arp.h>
 #include <linux/ip.h>
+#include <linux/kernel.h>
 #include <linux/if_ether.h>
 #include <linux/etherdevice.h>
 #include <linux/device.h>
@@ -74,7 +75,7 @@ static ssize_t store_waketime(struct device *dev,
 	struct io_device *iod = container_of(miscdev, struct io_device,
 			miscdev);
 
-	ret = strict_strtoul(buf, 10, &msec);
+	ret = kstrtoul(buf, 10, &msec);
 	if (ret)
 		return count;
 
@@ -926,7 +927,7 @@ static int io_dev_recv_data_from_link_dev(struct io_device *iod,
 	case IPC_RAW:
 	case IPC_MULTI_RAW:
 		if (iod->waketime)
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 			wake_lock_timeout(&iod->wakelock, iod->waketime);
 #else
 			pm_wakeup_event(iod->miscdev.this_device,
@@ -1015,7 +1016,7 @@ static void io_dev_sim_state_changed(struct io_device *iod, bool sim_online)
 	} else {
 		iod->mc->sim_state.online = sim_online;
 		iod->mc->sim_state.changed = true;
-#ifdef CONFIG_HAS_WAKELOCK
+#ifdef CONFIG_PM_WAKELOCKS
 		wake_lock_timeout(&iod->mc->bootd->wakelock,
 						iod->mc->bootd->waketime);
 #else
@@ -1635,10 +1636,11 @@ int sipc4_init_io_device(struct io_device *iod)
 	case IODEV_NET:
 		skb_queue_head_init(&iod->sk_rx_q);
 		if (iod->use_handover)
-			iod->ndev = alloc_netdev(0, iod->name,
+			iod->ndev = alloc_netdev(0, iod->name, NET_NAME_UNKNOWN,
 						vnet_setup_ether);
 		else
-			iod->ndev = alloc_netdev(0, iod->name, vnet_setup);
+			iod->ndev = alloc_netdev(0, iod->name, NET_NAME_UNKNOWN,
+						vnet_setup);
 
 		if (!iod->ndev) {
 			mif_err("failed to alloc netdev\n");
