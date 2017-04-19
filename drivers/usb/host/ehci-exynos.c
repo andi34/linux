@@ -53,13 +53,36 @@ static const char* const exynos_ehci_supply_names[] = {
 #define PHY_NUMBER 3
 
 struct exynos_ehci_hcd {
-	struct clk *clk;
+	struct clk *clk1;
+	struct clk *clk2;
 	struct phy *phy[PHY_NUMBER];
 	int power_on;
 	struct regulator_bulk_data supplies[ARRAY_SIZE(exynos_ehci_supply_names)];
 };
 
 #define to_exynos_ehci(hcd) (struct exynos_ehci_hcd *)(hcd_to_ehci(hcd)->priv)
+
+static int exynos_ehci_clk_enable(struct exynos_ehci_hcd *exynos_ehci)
+{
+	int err;
+
+	err = clk_prepare_enable(exynos_ehci->clk1);
+	if (err)
+		return err;
+
+	err = clk_prepare_enable(exynos_ehci->clk2);
+	if (err)
+		clk_disable_unprepare(exynos_ehci->clk1);
+
+	return err;
+}
+
+static void exynos_ehci_clk_disable(struct exynos_ehci_hcd *exynos_ehci)
+{
+
+	clk_disable_unprepare(exynos_ehci->clk2);
+	clk_disable_unprepare(exynos_ehci->clk1);
+}
 
 static int exynos_ehci_get_phy(struct device *dev,
 				struct exynos_ehci_hcd *exynos_ehci)
@@ -199,9 +222,9 @@ static ssize_t store_ehci_power(struct device *dev,
 	if (!new_state && exynos_ehci->power_on) {
 		usb_remove_hcd(hcd);
 		exynos_ehci_phy_disable(dev);
-		clk_disable_unprepare(exynos_ehci->clk);
+		exynos_ehci_clk_disable(exynos_ehci);
 	} else if (new_state && !exynos_ehci->power_on) {
-		clk_prepare_enable(exynos_ehci->clk);
+		exynos_ehci_clk_enable(exynos_ehci);
 		irq = platform_get_irq(to_platform_device(dev), 0);
 		err = usb_add_hcd(hcd, irq, IRQF_SHARED);
 		if (err < 0) {
@@ -258,15 +281,23 @@ static int exynos_ehci_probe(struct platform_device *pdev)
 
 skip_phy:
 
-	exynos_ehci->clk = devm_clk_get(&pdev->dev, "usbhost");
+	exynos_ehci->clk1 = devm_clk_get(&pdev->dev, "usbhost");
 
-	if (IS_ERR(exynos_ehci->clk)) {
+	if (IS_ERR(exynos_ehci->clk1)) {
 		dev_err(&pdev->dev, "Failed to get usbhost clock\n");
-		err = PTR_ERR(exynos_ehci->clk);
+		err = PTR_ERR(exynos_ehci->clk1);
 		goto fail_clk;
 	}
 
-	err = clk_prepare_enable(exynos_ehci->clk);
+	exynos_ehci->clk2 = devm_clk_get(&pdev->dev, "otg");
+
+	if (IS_ERR(exynos_ehci->clk2)) {
+		dev_err(&pdev->dev, "Failed to get otg clock\n");
+		err = PTR_ERR(exynos_ehci->clk2);
+		goto fail_clk;
+	}
+
+	err = exynos_ehci_clk_enable(exynos_ehci);
 	if (err)
 		goto fail_clk;
 
@@ -334,7 +365,7 @@ fail_add_hcd:
 fail_reg:
 	regulator_bulk_disable(ARRAY_SIZE(exynos_ehci->supplies), exynos_ehci->supplies);
 fail_io:
-	clk_disable_unprepare(exynos_ehci->clk);
+	exynos_ehci_clk_disable(exynos_ehci);
 fail_clk:
 	usb_put_hcd(hcd);
 	return err;
@@ -351,7 +382,7 @@ static int exynos_ehci_remove(struct platform_device *pdev)
 
 	exynos_ehci_phy_disable(&pdev->dev);
 
-	clk_disable_unprepare(exynos_ehci->clk);
+	exynos_ehci_clk_disable(exynos_ehci);
 
 	regulator_bulk_disable(ARRAY_SIZE(exynos_ehci->supplies), exynos_ehci->supplies);
 
@@ -375,7 +406,7 @@ static int exynos_ehci_suspend(struct device *dev)
 
 	exynos_ehci_phy_disable(dev);
 
-	clk_disable_unprepare(exynos_ehci->clk);
+	exynos_ehci_clk_disable(exynos_ehci);
 
 	return rc;
 }
@@ -386,12 +417,12 @@ static int exynos_ehci_resume(struct device *dev)
 	struct exynos_ehci_hcd *exynos_ehci = to_exynos_ehci(hcd);
 	int ret;
 
-	clk_prepare_enable(exynos_ehci->clk);
+	exynos_ehci_clk_enable(exynos_ehci);
 
 	ret = exynos_ehci_phy_enable(dev);
 	if (ret) {
 		dev_err(dev, "Failed to enable USB phy\n");
-		clk_disable_unprepare(exynos_ehci->clk);
+		exynos_ehci_clk_disable(exynos_ehci);
 		return ret;
 	}
 
