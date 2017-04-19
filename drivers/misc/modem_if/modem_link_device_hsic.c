@@ -748,7 +748,7 @@ static void link_pm_reconnect_work(struct work_struct *work)
 	}
 }
 
-static inline int link_pm_slave_wake(struct link_pm_data *pm_data)
+static int link_pm_slave_wake(struct link_pm_data *pm_data)
 {
 	int spin = 20;
 
@@ -770,6 +770,25 @@ static inline int link_pm_slave_wake(struct link_pm_data *pm_data)
 			mdelay(5);
 	}
 	return spin;
+}
+
+static int link_pm_wake(struct link_device *ld)
+{
+	struct link_pm_data *pm_data = to_usb_link_device(ld)->link_pm_data;
+	struct modem_ctl *mc = if_usb_get_modemctl(pm_data);
+	int ret = 0;
+	mif_info("cp ready? %d", gpio_get_value(mc->gpio_cp_reset));
+
+	ret = link_pm_slave_wake(pm_data);
+	gpio_direction_output(mc->gpio_pda_active, 1);
+	return ret;
+}
+
+static int link_pm_is_awake(struct link_device *ld)
+{
+	struct link_pm_data *pm_data = to_usb_link_device(ld)->link_pm_data;
+
+	return gpio_get_value(pm_data->gpio_link_hostwake) == HOSTWAKE_TRIGLEVEL;
 }
 
 static void link_pm_runtime_work(struct work_struct *work)
@@ -1620,6 +1639,8 @@ struct link_device *hsic_create_link_device(void *data)
 	ld->init_comm = usb_init_communication;
 	ld->terminate_comm = usb_terminate_communication;
 	ld->send = usb_send;
+	ld->wake = link_pm_wake;
+	ld->is_awake = link_pm_is_awake;
 	ld->com_state = COM_NONE;
 	ld->raw_tx_suspended = false;
 	init_completion(&ld->raw_tx_resumed_by_cp);

@@ -431,6 +431,12 @@ struct link_device {
 	/* terminate communication */
 	void (*terminate_comm)(struct link_device *ld, struct io_device *iod);
 
+    /* wake slave */
+    int (*wake)(struct link_device *ld);
+
+    /* is slave awake? */
+    int (*is_awake)(struct link_device *ld);
+
 	/* called by an io_device when it has a packet to send over link
 	 * - the io device is passed so the link device can look at id and
 	 *   format fields to determine how to route/format the packet
