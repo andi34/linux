@@ -504,6 +504,28 @@
 	};
 };
 
+&ohci {
+	status = "okay";
+
+	port@0 {
+		status = "okay";
+	};
+};
+
+&ehci {
+	vusb_d-supply = <&ldo15_reg>;
+	vusb_a-supply = <&ldo12_reg>;
+	samsung,vbus-gpio = <&gpf0 7 0>;
+	status = "okay";
+
+	port@0 {
+		status = "okay";
+	};
+	port@1 {
+		status = "okay";
+	};
+};
+
 &exynos_usbphy {
 	vbus-supply = <&esafeout1_reg>;
 	status = "okay";
