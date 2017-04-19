@@ -116,6 +116,49 @@ static ssize_t store_loopback(struct device *dev,
 static struct device_attribute attr_loopback =
 	__ATTR(loopback, S_IRUGO | S_IWUSR, show_loopback, store_loopback);
 
+
+static ssize_t show_slave_state(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct miscdevice *miscdev = dev_get_drvdata(dev);
+	struct modem_shared *msd = container_of(miscdev, struct io_device, miscdev)->msd;
+	struct link_device *ld;
+	int val = 1;
+	int res;
+
+	list_for_each_entry(ld, &msd->link_dev_list, list) {
+		if (ld->is_awake != NULL) {
+			val = val && ld->is_awake(ld);
+		}
+	}
+
+	res = sprintf(buf, "%d", val);
+	return res;
+}
+
+static ssize_t store_slave_state(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct miscdevice *miscdev = dev_get_drvdata(dev);
+	struct modem_shared *msd = container_of(miscdev, struct io_device, miscdev)->msd;
+	struct link_device *ld;
+	int res;
+
+	list_for_each_entry(ld, &msd->link_dev_list, list) {
+		if (ld->wake != NULL) {
+			res = ld->wake(ld);
+			if (res < 0) {
+				// modem wake failed
+				pr_err("modem wake failure: %d\n", res);
+			}
+		}
+	}
+	return count;
+}
+
+static struct device_attribute attr_slave_state = 
+	__ATTR(slave_state, S_IRUGO | S_IWUSR, show_slave_state, store_slave_state);
+
 static int get_header_size(struct io_device *iod)
 {
 	switch (iod->format) {
@@ -1679,6 +1722,11 @@ int sipc4_init_io_device(struct io_device *iod)
 				&attr_loopback);
 		if (ret)
 			mif_err("failed to create `loopback file' : %s\n",
+					iod->name);
+		ret = device_create_file(iod->miscdev.this_device,
+				&attr_slave_state);
+		if (ret)
+			mif_err("failed to create 'slave_state' file: %s\n",
 					iod->name);
 		break;
 
