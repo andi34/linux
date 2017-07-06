@@ -366,7 +366,9 @@ static int exynos4412_regulator_init(struct device *dev, struct exynos4412_drvda
 	regulator = regulator_get(dev, "gpu");
 
 	if (IS_ERR(regulator)) {
-		dev_err(dev, MSG_PREFIX "failed to get regulator\n");
+		dev_err(dev, MSG_PREFIX "failed to get regulator: %ld\n", PTR_ERR(regulator));
+		if (PTR_ERR(regulator) == -EPROBE_DEFER)
+			return -EPROBE_DEFER;
 		return -EFAULT;
 	}
 

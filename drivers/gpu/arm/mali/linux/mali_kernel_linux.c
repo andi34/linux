@@ -424,7 +424,9 @@ static int mali_probe(struct platform_device *pdev)
 	err = mali_platform_device_init(mali_platform_device);
 	if (0 != err) {
 		MALI_PRINT_ERROR(("mali_probe(): Failed to initialize platform device."));
-		return -EFAULT;
+		if (err == -EPROBE_DEFER)
+			mali_platform_device = NULL;
+		return err;
 	}
 
 	err = _mali_osk_wq_init();
